@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Reporte de rendimiento de carruseles de @tokefit, con métricas verificadas y cobertura de datos.">
+  <title>TOKEFIT · Reporte de carruseles</title>
+  <style>
+    :root{
+      --bg:#050706;--surface:#0c100e;--surface-2:#111713;--line:#28312b;--line-soft:#1b231e;
+      --ink:#f6f8f6;--muted:#9ba69f;--accent:#02e675;--accent-dim:#0b5d37;--warning:#ffb020;
+      --danger:#ff5d5d;--info:#7eb6ff;--radius:3px;--max:1440px;
+      --font:"Arial Narrow",Arial,Helvetica,sans-serif;--mono:"Cascadia Mono",Consolas,monospace;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5}
+    button,input,select{font:inherit} a{color:inherit} :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+    .shell{width:min(var(--max),calc(100% - 32px));margin:0 auto}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(5,7,6,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+    .topbar-inner{min-height:68px;display:flex;align-items:center;gap:18px;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:12px;min-width:210px}.brand-mark{width:12px;height:36px;background:var(--accent)}
+    .brand strong{display:block;font-size:17px;letter-spacing:.04em}.brand span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:42px;border:1px solid var(--accent);border-radius:var(--radius);padding:9px 13px;background:transparent;color:var(--ink);font-weight:700;cursor:pointer}
+    .btn:hover{background:var(--accent);color:#00170c}.btn.secondary{border-color:var(--line);color:var(--muted)}.btn.secondary:hover{background:var(--surface-2);color:var(--ink)}
+    main{padding:34px 0 72px}.eyebrow{color:var(--accent);font:700 12px/1 var(--mono);letter-spacing:.11em;text-transform:uppercase}
+    .report-head{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.6fr);gap:36px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:30px}
+    h1{font-size:clamp(34px,5vw,68px);line-height:.96;letter-spacing:-.045em;margin:14px 0 16px;max-width:900px}
+    .lead{color:#cbd2cd;max-width:820px;font-size:18px;margin:0}.cutoff{border-top:2px solid var(--accent);padding-top:15px}
+    .cutoff dl{display:grid;grid-template-columns:1fr auto;gap:9px 18px;margin:0}.cutoff dt{color:var(--muted)}.cutoff dd{margin:0;font-family:var(--mono);font-size:13px;text-align:right}
+    .notice{margin:20px 0 0;padding:13px 16px;border:1px solid var(--warning);color:#ffd893;background:#171208;font-size:14px}
+    .kpis{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);margin:28px 0;background:var(--surface)}
+    .kpi{padding:18px;border-right:1px solid var(--line);min-height:112px}.kpi:last-child{border-right:0}.kpi b{display:block;font-size:clamp(26px,3vw,43px);line-height:1;font-family:var(--mono);letter-spacing:-.06em}.kpi span{display:block;color:var(--muted);font-size:13px;margin-top:11px}.kpi small{display:block;color:#68736c;font-size:11px;margin-top:4px}
+    .section{margin-top:42px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:16px}.section-head h2{font-size:27px;line-height:1.1;margin:6px 0 0}.section-head p{max-width:660px;color:var(--muted);margin:0;font-size:14px}
+    .findings{display:grid;grid-template-columns:1.2fr .8fr .8fr;border:1px solid var(--line);background:var(--surface)}
+    .finding{padding:22px;border-right:1px solid var(--line);min-height:190px}.finding:last-child{border-right:0}.finding .metric{font:700 clamp(32px,4vw,56px)/1 var(--mono);letter-spacing:-.07em;margin:16px 0 8px}.finding h3{margin:0;font-size:18px}.finding p{color:var(--muted);margin:10px 0 0;font-size:14px}.finding strong{color:var(--accent)}
+    .compare-track{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.compare-cell{border-top:1px solid var(--line);padding-top:10px}.compare-cell b{font:700 22px/1 var(--mono)}.compare-cell span{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+    .controls{display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:10px;margin:18px 0}.control{min-height:46px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 12px;border-radius:var(--radius)}
+    .control::placeholder{color:#68736c}.chart-panel,.table-panel{border:1px solid var(--line);background:var(--surface)}
+    .chart-panel{padding:18px}.chart-legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:18px}.dot{display:inline-block;width:9px;height:9px;margin-right:6px}.dot.in{background:#39433c}.dot.out{background:var(--accent)}
+    .bar-row{display:grid;grid-template-columns:minmax(180px,1.1fr) minmax(220px,3fr) 84px;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}.bar-row:first-of-type{border-top:0}
+    .bar-label b{display:block;font-size:14px}.bar-label span{color:var(--muted);font-size:11px}.bar-wrap{height:22px;background:#171d19;display:flex;overflow:hidden}.bar-inside{background:#3a443d}.bar-outside{background:var(--accent);min-width:2px}.bar-value{text-align:right;font:700 13px/1 var(--mono)}
+    .table-wrap{overflow:auto}.metrics-table{width:100%;border-collapse:collapse;min-width:1180px}.metrics-table th,.metrics-table td{padding:13px 12px;text-align:right;border-bottom:1px solid var(--line-soft);font-size:13px;white-space:nowrap}.metrics-table th{position:sticky;top:68px;background:#0a0e0c;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;z-index:2}.metrics-table th:first-child,.metrics-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}.metrics-table th:first-child{z-index:3;background:#0a0e0c}.metrics-table tr:hover td{background:#101712}.metrics-table tr:hover td:first-child{background:#101712}.title-cell b{display:block;color:var(--ink);max-width:310px;overflow:hidden;text-overflow:ellipsis}.title-cell span{color:var(--muted);font-size:11px}.num{font-family:var(--mono)}.good{color:var(--accent)}.warn{color:var(--warning)}.na{color:#637068}.tag{display:inline-block;padding:3px 6px;border:1px solid var(--line);font:700 10px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.06em}.tag.measured{border-color:var(--accent-dim);color:var(--accent)}.tag.missing{border-color:#6a511d;color:var(--warning)}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.post-card{border:1px solid var(--line);background:var(--surface);padding:18px;min-width:0}.post-card[hidden]{display:none}.post-card-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.post-card h3{font-size:18px;line-height:1.2;margin:6px 0 4px}.post-card .meta{font:400 11px/1.4 var(--mono);color:var(--muted)}
+    .mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:17px 0}.mini{background:var(--surface-2);padding:11px}.mini b{display:block;font:700 18px/1 var(--mono)}.mini span{display:block;color:var(--muted);font-size:10px;margin-top:6px;text-transform:uppercase;letter-spacing:.07em}
+    .audience{margin:15px 0}.audience-line{display:flex;height:10px;background:#29312b}.audience-in{background:#465149}.audience-out{background:var(--accent)}.audience-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:7px}
+    details{border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-weight:700;color:#c9d1cb}details p{color:var(--muted);font-size:13px}.history{display:grid;gap:6px;margin-top:10px}.history-row{display:grid;grid-template-columns:86px 1fr auto;gap:8px;font:400 11px/1.3 var(--mono);padding:7px 0;border-top:1px solid var(--line-soft)}.history-row span:nth-child(2){color:var(--muted)}
+    .method{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}.method article{background:var(--surface);padding:22px}.method h3{margin:0 0 10px}.method p,.method li{color:var(--muted);font-size:14px}.method ul{margin:0;padding-left:20px}
+    .footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-size:12px}.footer-inner{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+    .empty{padding:40px;border:1px solid var(--line);color:var(--muted);text-align:center}
+    @media(max-width:1100px){.kpis{grid-template-columns:repeat(4,1fr)}.kpi:nth-child(4){border-right:0}.kpi:nth-child(-n+4){border-bottom:1px solid var(--line)}.findings{grid-template-columns:1fr}.finding{border-right:0;border-bottom:1px solid var(--line)}.finding:last-child{border-bottom:0}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.shell{width:min(100% - 20px,var(--max))}.topbar-inner{align-items:flex-start;padding:12px 0}.actions{justify-content:flex-end}.btn{font-size:12px;min-height:40px}.report-head{grid-template-columns:1fr;gap:24px}.kpis{grid-template-columns:repeat(2,1fr)}.kpi:nth-child(even){border-right:0}.kpi:nth-child(n){border-bottom:1px solid var(--line)}.kpi:last-child{border-bottom:0}.controls{grid-template-columns:1fr}.bar-row{grid-template-columns:1fr}.bar-value{text-align:left}.cards{grid-template-columns:1fr}.method{grid-template-columns:1fr}.section-head{align-items:flex-start;flex-direction:column}.metrics-table th{top:76px}}
+    @media print{.topbar,.controls,.actions{display:none!important}body{background:#fff;color:#000}.shell{width:100%;max-width:none}.report-head,.section,.kpis{break-inside:avoid}.chart-panel,.table-panel,.post-card,.finding,.kpi,.method article{background:#fff;color:#000;border-color:#aaa}.lead,.section-head p,.finding p,.meta,.method p,.method li{color:#444}.cards{grid-template-columns:1fr 1fr}.post-card{break-inside:avoid}.metrics-table th,.metrics-table td:first-child{position:static;background:#fff;color:#000}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><div><strong>TOKEFIT</strong><span>Control de contenido</span></div></div>
+      <div class="actions">
+        <button class="btn secondary" id="downloadCsv">Descargar CSV</button>
+        <button class="btn" onclick="window.print()">Imprimir / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="report-head" aria-labelledby="title">
+      <div>
+        <div class="eyebrow">Reporte operativo · @tokefit</div>
+        <h1 id="title">Rendimiento de carruseles</h1>
+        <p class="lead">Qué ocurrió con cada publicación, cuánto llegó dentro y fuera de la comunidad y qué señales produjo. El panel separa datos verificados, acumulados tardíos y métricas no disponibles.</p>
+      </div>
+      <aside class="cutoff" aria-label="Cobertura del reporte">
+        <dl>
+          <dt>Panel generado</dt><dd>25 AGO 2026 · 12:19</dd>
+          <dt>Última captura real</dt><dd>19 AGO 2026 · 13:30</dd>
+          <dt>Publicaciones incluidas</dt><dd>9</dd>
+          <dt>Con métricas completas</dt><dd>8</dd>
+        </dl>
+      </aside>
+    </section>
+    <div class="notice"><strong>Importante:</strong> “Generado hoy” no significa “leído hoy desde Instagram”. La sesión de escritorio no estaba disponible; el último dato autenticado del panel profesional es del 19/08. No se han estimado cifras posteriores.</div>
+
+    <section class="kpis" aria-label="Resumen de métricas">
+      <div class="kpi"><b>9</b><span>Carruseles publicados</span><small>8 medidos + 1 sin Insights</small></div>
+      <div class="kpi"><b>2.577</b><span>Visualizaciones registradas</span><small>Suma de cortes no equivalentes</small></div>
+      <div class="kpi"><b>1.019</b><span>Alcance acumulado</span><small>No son personas únicas</small></div>
+      <div class="kpi"><b>44</b><span>Interacciones</span><small>28 likes · 11 comentarios · 5 guardados</small></div>
+      <div class="kpi"><b>5</b><span>Guardados</span><small>0,49 % sobre alcance acumulado</small></div>
+      <div class="kpi"><b>0</b><span>Compartidos</span><small>Sin amplificación registrada</small></div>
+      <div class="kpi"><b>0</b><span>Seguidores ganados</span><small>15 visitas al perfil</small></div>
+    </section>
+
+    <section class="section" aria-labelledby="lectura-title">
+      <div class="section-head"><div><div class="eyebrow">Lectura ejecutiva</div><h2 id="lectura-title">La caída está fuera de la comunidad</h2></div><p>La muestra histórica y la reciente no comparten el mismo corte temporal, por lo que esto es una señal operativa, no una prueba causal sobre programación, móvil o algoritmo.</p></div>
+      <div class="findings">
+        <article class="finding">
+          <h3>Mediana de alcance a no seguidores</h3>
+          <div class="metric">11,5 → 1,9 %</div>
+          <p>La mediana reciente es un <strong>83,5 % menor</strong> que la histórica. Las últimas piezas se consumieron casi enteramente dentro de la comunidad existente.</p>
+          <div class="compare-track"><div class="compare-cell"><b>11,5 %</b><span>Mayo–junio · histórico</span></div><div class="compare-cell"><b>1,9 %</b><span>30 julio–11 agosto · reciente</span></div></div>
+        </article>
+        <article class="finding">
+          <h3>Mejor señal de valor</h3>
+          <div class="metric">3</div>
+          <p><strong>Dos hombres, un objetivo</strong> lidera en guardados: 3 sobre 241 espectadores, una tasa del 1,24 %.</p>
+        </article>
+        <article class="finding">
+          <h3>Cuello de botella</h3>
+          <div class="metric">0 / 0</div>
+          <p>Compartidos / seguidores ganados. El contenido produce consumo y alguna interacción, pero todavía no crea distribución secundaria ni crecimiento atribuible.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="audiencia-title">
+      <div class="section-head"><div><div class="eyebrow">Distribución</div><h2 id="audiencia-title">Dentro vs. fuera de la cuenta</h2></div><p>Las barras muestran el alcance total y la proporción de seguidores frente a no seguidores en el último corte disponible de cada carrusel.</p></div>
+      <div class="chart-panel">
+        <div class="chart-legend"><span><i class="dot in"></i>Seguidores / dentro</span><span><i class="dot out"></i>No seguidores / fuera</span><span>Longitud = alcance relativo</span></div>
+        <div id="audienceChart"></div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="tabla-title">
+      <div class="section-head"><div><div class="eyebrow">Comparativa completa</div><h2 id="tabla-title">Todos los carruseles</h2></div><p>Ordena por la métrica que quieras analizar. Los guiones significan “no disponible”, no cero.</p></div>
+      <div class="controls">
+        <input class="control" id="search" type="search" placeholder="Buscar carrusel, CTA o fecha…" aria-label="Buscar carrusel">
+        <select class="control" id="periodFilter" aria-label="Filtrar periodo"><option value="all">Todo el periodo</option><option value="historical">Mayo–junio</option><option value="recent">Julio–agosto</option></select>
+        <select class="control" id="sortMetric" aria-label="Ordenar por"><option value="date">Más reciente</option><option value="views">Más visualizaciones</option><option value="reach">Más alcance</option><option value="nonFollowersPct">Más alcance externo</option><option value="engagementRate">Mejor interacción</option><option value="saves">Más guardados</option><option value="profileVisits">Más visitas al perfil</option></select>
+      </div>
+      <div class="table-panel table-wrap"><table class="metrics-table"><thead><tr><th>Carrusel</th><th>Corte</th><th>Vistas</th><th>Alcance</th><th>Fuera</th><th>Likes</th><th>Comentarios</th><th>Guardados</th><th>Compartidos</th><th>Visitas</th><th>Seguidores</th><th>Interacción</th><th>Consumo*</th><th>Retención</th></tr></thead><tbody id="metricsBody"></tbody></table></div>
+      <p style="color:var(--muted);font-size:12px;margin-top:9px">* Consumo = visualizaciones ÷ alcance. Sirve como proxy de repetición, pero <strong>no equivale a retención de slides</strong>. Instagram no proporcionó esa métrica en las capturas disponibles.</p>
+    </section>
+
+    <section class="section" aria-labelledby="fichas-title">
+      <div class="section-head"><div><div class="eyebrow">Detalle por pieza</div><h2 id="fichas-title">Ficha de cada publicación</h2></div><p>Abre “Historial y lectura” para ver cortes capturados, ventanas perdidas y el aprendizaje principal.</p></div>
+      <div class="cards" id="postCards"></div><div class="empty" id="emptyState" hidden>No hay carruseles que coincidan con los filtros.</div>
+    </section>
+
+    <section class="section" aria-labelledby="metodo-title">
+      <div class="section-head"><div><div class="eyebrow">Método y límites</div><h2 id="metodo-title">Cómo leer este reporte</h2></div></div>
+      <div class="method">
+        <article><h3>Qué sí afirma</h3><ul><li>Los números proceden de Insights autenticados registrados localmente.</li><li>“Fuera” significa porcentaje de no seguidores mostrado por Instagram.</li><li>Los ceros explícitos se conservan como cero.</li><li>Las tasas se calculan sobre alcance o espectadores.</li></ul></article>
+        <article><h3>Qué no afirma</h3><ul><li>No suma el alcance como personas únicas.</li><li>No convierte acumulados tardíos en cortes de 24 h, 72 h o 7 días.</li><li>No llama retención a visualizaciones por persona.</li><li>No atribuye la caída a programar, subir desde móvil o usar una herramienta concreta.</li></ul></article>
+        <article><h3>Cobertura</h3><p>Ocho carruseles tienen al menos una medición cuantitativa. “Duermes, pero te levantas cansado” solo tiene confirmación de publicación y una línea base a los 25 minutos; sus Insights no están disponibles.</p></article>
+        <article><h3>Siguiente prueba</h3><p>Comparar durante una semana publicaciones manuales desde móvil con la misma disciplina de medición: 24 h, 72 h y 7 días; registrar alcance externo, guardados, compartidos, visitas, seguidores y origen del tráfico.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="shell footer-inner"><span>TOKEFIT · Reporte de carruseles</span><span>Datos verificados hasta 19 AGO 2026 · Sin estimaciones posteriores</span></div></footer>
+
+  <script>
+    const posts = [
+      {id:'2026-05-24',date:'2026-05-24',period:'historical',title:'Descansar más te está dejando sin energía',slides:8,url:'https://www.instagram.com/p/DYuMCtpAtYf/',cta:'ENERGÍA',cutoff:'Acumulado histórico · 68 días',status:'measured',views:245,reach:103,followersPct:94.6,nonFollowersPct:5.4,interactions:6,likes:4,comments:2,saves:0,shares:0,profileVisits:0,followersGained:0,notes:'Consumo casi exclusivo de seguidores. Sin guardados, compartidos, actividad de perfil ni CTA. Dos comentarios visibles incluyen una respuesta de Tornike.',history:[['31/07','Acumulado histórico · 68 d','245 vistas · 103 alcance']]},
+      {id:'2026-06-05',date:'2026-06-05',period:'historical',title:'Los hombres que más se esfuerzan después de los 35',slides:9,url:'https://www.instagram.com/p/DZMl-a-gvJ-/',cta:'ENERGÍA',cutoff:'Acumulado histórico · 56 días',status:'measured',views:381,reach:143,followersPct:88.5,nonFollowersPct:11.5,interactions:12,likes:9,comments:2,saves:1,shares:0,profileVisits:2,followersGained:0,notes:'Mejor interacción histórica y primer guardado. El gancho es específico, aunque los claims hormonales históricos no deben reutilizarse sin reformulación.',history:[['31/07','Acumulado histórico · 56 d','381 vistas · 143 alcance']]},
+      {id:'2026-06-13',date:'2026-06-13',period:'historical',title:'Steve Jobs no podía comprar más tiempo',slides:7,url:'https://www.instagram.com/p/DZiAlRSAlx0/',cta:'TIEMPO',cutoff:'Acumulado histórico · 48 días',status:'measured',views:326,reach:123,followersPct:85,nonFollowersPct:15,interactions:6,likes:5,comments:1,saves:0,shares:0,profileVisits:4,followersGained:0,notes:'Mayor proporción de no seguidores y mejor tasa de visita al perfil. Cero guardados, compartidos o comentarios CTA.',history:[['31/07','Acumulado histórico · 48 d','326 vistas · 123 alcance']]},
+      {id:'2026-07-30',date:'2026-07-30',period:'recent',title:'Dos hombres, dos preocupaciones, el mismo miedo',slides:5,url:'https://www.instagram.com/p/DbbFAj8Ar4e/',cta:'DIAGNOSTICO',cutoff:'Acumulado tardío · ~11 días',status:'measured',views:310,reach:126,followersPct:98.1,nonFollowersPct:1.9,interactions:0,likes:0,comments:0,saves:0,shares:0,profileVisits:2,followersGained:0,notes:'El alcance creció después del corte temprano, pero no activó interacción, guardado, conversación ni CTA. Conservó dos visitas al perfil.',history:[['31/07','Corte temprano · 18 h','222 vistas · 83 alcance'],['31/07','24 h','No capturado'],['02/08','72 h','No capturado'],['06/08','7 días','No capturado'],['10/08','Acumulado tardío · ~11 d','310 vistas · 126 alcance']]},
+      {id:'2026-08-02',date:'2026-08-02',period:'recent',title:'Sales del gym, llegas a casa zombie',slides:5,url:'https://www.instagram.com/p/DbizU6BAlM_/',cta:'ENERGIA',cutoff:'Acumulado · 8 días',status:'measured',views:265,reach:95,followersPct:98.5,nonFollowersPct:1.5,interactions:5,likes:2,comments:2,saves:1,shares:0,profileVisits:1,followersGained:0,notes:'Generó un guardado y comentarios, pero la distribución externa siguió siendo mínima. Los comentarios visibles no contenían la keyword.',history:[['03/08','Corte temprano · 18 h','168 vistas · 61 alcance'],['03/08','24 h','No capturado'],['05/08','Corte próximo a 72 h · ~66 h','231 vistas · 79 alcance'],['08/08','Corte próximo a 7 días · ~6 d','250 vistas · 88 alcance'],['10/08','Acumulado · 8 d','265 vistas · 95 alcance']]},
+      {id:'2026-08-05',date:'2026-08-05',period:'recent',title:'Nada funciona',slides:5,url:null,cta:'MAPA',cutoff:'Acumulado tardío · 14 días',status:'measured',views:260,reach:101,followersPct:97.7,nonFollowersPct:2.3,interactions:3,likes:1,comments:2,saves:0,shares:0,profileVisits:1,followersGained:0,notes:'Hubo conversación, pero ningún guardado, compartido, seguidor o señal CTA. El corte exacto de 72 h sí fue capturado; 24 h y 7 días se perdieron.',history:[['06/08','24 h','No capturado'],['08/08','Corte próximo a 72 h','214 vistas · 82 alcance'],['12/08','7 días','No capturado'],['19/08','Acumulado tardío · 14 d','260 vistas · 101 alcance']]},
+      {id:'2026-08-08',date:'2026-08-08',period:'recent',title:'La cuenta de energía',slides:5,url:null,cta:'BALANCE',cutoff:'Acumulado tardío · 11 días',status:'measured',views:249,reach:87,followersPct:95.2,nonFollowersPct:4.8,interactions:5,likes:3,comments:2,saves:0,shares:0,profileVisits:2,followersGained:0,notes:'Mejor tasa reciente de interacción y visita al perfil, pero sin guardados, compartidos ni seguidores. No se capturaron los cortes exactos.',history:[['09/08','24 h','No capturado'],['10/08','Acumulado tardío · ~2 d','149 vistas · 53 alcance'],['11/08','72 h','No capturado'],['15/08','7 días','No capturado'],['19/08','Acumulado tardío · 11 d','249 vistas · 87 alcance']]},
+      {id:'2026-08-10',date:'2026-08-10',period:'recent',title:'Duermes, pero te levantas cansado',slides:5,url:null,cta:'DESCANSO',cutoff:'Línea base · 25 minutos',status:'missing',views:null,reach:null,followersPct:null,nonFollowersPct:null,interactions:null,likes:0,comments:0,saves:null,shares:null,profileVisits:null,followersGained:null,notes:'La publicación quedó confirmada, pero el botón de Insights no respondió. Solo se verificaron 0 likes y 0 comentarios a los 25 minutos; el resto no está disponible.',history:[['10/08','Línea base · 25 min','Publicado · 0 likes · 0 comentarios'],['11/08','24 h','No disponible'],['13/08','72 h','No disponible'],['17/08','7 días','No disponible']]},
+      {id:'2026-08-11',date:'2026-08-11',period:'recent',title:'Dos hombres, un objetivo',slides:7,url:null,cta:'PLAN',cutoff:'Acumulado tardío · 8 días',status:'measured',views:541,reach:241,followersPct:98.5,nonFollowersPct:1.5,interactions:7,likes:4,comments:0,saves:3,shares:0,profileVisits:3,followersGained:0,notes:'Mayor alcance y visualizaciones de la muestra, además de 3 guardados. Aun así, solo el 1,5 % llegó a no seguidores y no generó compartidos ni seguidores.',history:[['12/08','24 h','No capturado'],['14/08','72 h','No capturado'],['18/08','7 días','No capturado'],['19/08','Acumulado tardío · 8 d','541 vistas · 241 alcance']]}
+    ];
+    posts.forEach(p=>{p.engagementRate=p.reach&&p.interactions!=null?p.interactions/p.reach*100:null;p.saveRate=p.reach&&p.saves!=null?p.saves/p.reach*100:null;p.profileRate=p.reach&&p.profileVisits!=null?p.profileVisits/p.reach*100:null;p.consumption=p.reach&&p.views!=null?p.views/p.reach:null});
+    const fmt=n=>n==null?'—':new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(n);
+    const pct=n=>n==null?'—':fmt(n)+' %';
+    const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const filters={q:'',period:'all',sort:'date'};
+    function current(){let list=posts.filter(p=>(filters.period==='all'||p.period===filters.period)&&(`${p.title} ${p.cta} ${p.date}`.toLowerCase().includes(filters.q)));return list.sort((a,b)=>filters.sort==='date'?b.date.localeCompare(a.date):(b[filters.sort]??-1)-(a[filters.sort]??-1));}
+    function renderChart(list){const measured=list.filter(p=>p.reach);const max=Math.max(...measured.map(p=>p.reach),1);document.getElementById('audienceChart').innerHTML=measured.map(p=>{const total=p.reach/max*100,inside=total*(p.followersPct/100),outside=total*(p.nonFollowersPct/100);return `<div class="bar-row"><div class="bar-label"><b>${esc(p.title)}</b><span>${p.date} · fuera ${pct(p.nonFollowersPct)}</span></div><div class="bar-wrap" title="${p.reach} cuentas alcanzadas"><div class="bar-inside" style="width:${inside}%"></div><div class="bar-outside" style="width:${outside}%"></div></div><div class="bar-value">${fmt(p.reach)}</div></div>`}).join('')||'<div class="empty">Sin métricas para este filtro.</div>'}
+    function renderTable(list){document.getElementById('metricsBody').innerHTML=list.map(p=>`<tr><td class="title-cell"><b>${esc(p.title)}</b><span>${p.date} · ${p.slides} slides · <span class="tag ${p.status}">${p.status==='measured'?'medido':'sin insights'}</span></span></td><td>${esc(p.cutoff)}</td><td class="num">${fmt(p.views)}</td><td class="num">${fmt(p.reach)}</td><td class="num ${p.nonFollowersPct>=10?'good':p.nonFollowersPct!=null&&p.nonFollowersPct<3?'warn':''}">${pct(p.nonFollowersPct)}</td><td class="num">${fmt(p.likes)}</td><td class="num">${fmt(p.comments)}</td><td class="num">${fmt(p.saves)}</td><td class="num">${fmt(p.shares)}</td><td class="num">${fmt(p.profileVisits)}</td><td class="num">${fmt(p.followersGained)}</td><td class="num">${pct(p.engagementRate)}</td><td class="num">${p.consumption==null?'—':fmt(p.consumption)+'×'}</td><td class="na">No disponible</td></tr>`).join('')}
+    function card(p){const linked=p.url?`<a href="${p.url}" target="_blank" rel="noopener">Ver publicación ↗</a>`:'Enlace no documentado';return `<article class="post-card" data-id="${p.id}"><div class="post-card-top"><div><div class="eyebrow">${p.date} · ${p.slides} slides</div><h3>${esc(p.title)}</h3><div class="meta">CTA ${esc(p.cta)} · ${linked}</div></div><span class="tag ${p.status}">${p.status==='measured'?'medido':'sin insights'}</span></div><div class="mini-metrics"><div class="mini"><b>${fmt(p.views)}</b><span>Vistas</span></div><div class="mini"><b>${fmt(p.reach)}</b><span>Alcance</span></div><div class="mini"><b>${pct(p.nonFollowersPct)}</b><span>Fuera</span></div><div class="mini"><b>${fmt(p.likes)}</b><span>Likes</span></div><div class="mini"><b>${fmt(p.comments)}</b><span>Comentarios</span></div><div class="mini"><b>${fmt(p.saves)}</b><span>Guardados</span></div></div>${p.reach?`<div class="audience"><div class="audience-line"><div class="audience-in" style="width:${p.followersPct}%"></div><div class="audience-out" style="width:${p.nonFollowersPct}%"></div></div><div class="audience-labels"><span>Dentro ${pct(p.followersPct)}</span><span>Fuera ${pct(p.nonFollowersPct)}</span></div></div>`:''}<details><summary>Historial y lectura</summary><p>${esc(p.notes)}</p><p><strong>Retención:</strong> no disponible. ${p.consumption?`Proxy de consumo repetido: ${fmt(p.consumption)} visualizaciones por cuenta.`:''}</p><div class="history">${p.history.map(h=>`<div class="history-row"><span>${h[0]}</span><span>${esc(h[1])}</span><strong>${esc(h[2])}</strong></div>`).join('')}</div></details></article>`}
+    function render(){const list=current();renderChart(list);renderTable(list);document.getElementById('postCards').innerHTML=list.map(card).join('');document.getElementById('emptyState').hidden=list.length>0}
+    document.getElementById('search').addEventListener('input',e=>{filters.q=e.target.value.trim().toLowerCase();render()});
+    document.getElementById('periodFilter').addEventListener('change',e=>{filters.period=e.target.value;render()});
+    document.getElementById('sortMetric').addEventListener('change',e=>{filters.sort=e.target.value;render()});
+    document.getElementById('downloadCsv').addEventListener('click',()=>{const cols=['Fecha','Carrusel','Corte','Vistas','Alcance','Seguidores %','No seguidores %','Likes','Comentarios','Guardados','Compartidos','Visitas perfil','Seguidores ganados','Interacción %','Consumo por alcance','Retención'];const rows=posts.map(p=>[p.date,p.title,p.cutoff,p.views,p.reach,p.followersPct,p.nonFollowersPct,p.likes,p.comments,p.saves,p.shares,p.profileVisits,p.followersGained,p.engagementRate,p.consumption,'No disponible']);const csv=[cols,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tokefit-carruseles-metricas-2026-08-25.csv';a.click();URL.revokeObjectURL(a.href)});
+    render();
+  </script>
+</body>
+</html>
