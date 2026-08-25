@@ -15,7 +15,7 @@ Dashboard público y estático del rendimiento de carruseles de `@tokefit`.
 
 ## Uso
 
-Abrir `index.html` directamente o servir el directorio como sitio estático. El panel incluye filtros, comparativa, fichas desplegables, exportación CSV y vista de impresión/PDF.
+Abrir `index.html` directamente o servir el directorio como sitio estático. El panel incluye un resumen visual de cobertura, barras comparativas de visualizaciones, filtros, comparativa completa, fichas desplegables, exportación CSV y vista de impresión/PDF.
 
 ## Privacidad
 
